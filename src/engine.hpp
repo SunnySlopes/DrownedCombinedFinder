@@ -15,8 +15,6 @@
 namespace riverfinder_native {
 using Clock = std::chrono::steady_clock;
 constexpr int kWorldMin = -30000000, kWorldMax = 29999999;
-/** caveConversion 的默认值；用于"未传 → 走旧口径快路径"的判定。 */
-constexpr double kDefaultCaveConversion = 4880.0 / 7011.0;
 
 /**
  * 固定挂机 Y 的“自动”哨兵（对齐 B 的 AFK_Y_AUTO）。
@@ -40,7 +38,9 @@ struct Config {
     int radius = 100000;
     std::string shape = "circle";
     bool fullWorld = false;
-    int threads = 8;
+    /* 默认 16 线程（作者实测 300k 半径 33.0 → 25.7 s，1e6 半径由“卡死”降到分钟级；
+     * 配合每线程本地候选堆后效果才明显）。上限仍由 validate() 限定为 32。 */
+    int threads = 16;
     int top = 100;
     // 三字段门槛（C7）：minArea = R + 1.43668·C。minArea 是低层入口，
     // 三字段给定时由 minRiverArea/minCaveArea 推导。默认 = 河流 70% 上限。
@@ -71,11 +71,6 @@ struct Config {
     // C7 三字段：<0 表示未启用，minArea 由 minArea 原样使用。
     int minRiverArea = -1;
     int minCaveArea = -1;
-    /**
-     * 河流/溶洞折算系数（S1）：等效溶洞面积 = caveVolume * caveConversion / layers。
-     * 取值范围 (0, 1]，默认 4880/7011 ≈ 0.6962。不传该字段时用默认值，
-     * 此时计分结果与旧版逐位一致。
-     */
     double caveConversion = 4880.0 / 7011.0;
     // 纯河流 A 表：auto|on|off（C2b 第 3 步）。
     std::string pureRiverCache = "auto";
@@ -207,22 +202,9 @@ int64_t distanceSquared(const Config &cfg, int x, int z);
 // 按未舍入的有理数评分比较，主评分相同后才比较距离和坐标。
 bool better(const Hit &a, const Hit &b, const Config &cfg);
 double score(const Hit &hit, const Config &cfg);
-/** 旧口径分子（不含 caveConversion），保留以兼容既有调用方。 */
 std::string scoreNumerator(const Hit &hit);
-/** 与新口径分子（含 caveConversion），返回 "分子/分母" 文本。 */
-std::string scoreNumerator(const Hit &hit, const Config &cfg);
 int scoreDenominator(const Config &cfg);
 void validate(Config &cfg);
-
-/**
- * 等效溶洞面积（S1）：把 caveVolume 按 caveConversion 折算成"河流层当量格数"。
- * 返回值 = round(caveVolume * caveConversion / layers)，
- * 前端「等效溶洞面积」直接用这个值，与标量 score 同口径。
- */
-int64_t equivalentCaveArea(const Hit &hit, const Config &cfg);
-
-/** 单层的河流当量上限（纯河流单层满环 = 49640）。用于 >100% 判断。 */
-constexpr int kPureRiverLayerCap = 49640;
 
 using ProgressCallback = std::function<void(const Statistics &)>;
 SearchResult search(Config cfg, Control &control, const ProgressCallback &progress = {});

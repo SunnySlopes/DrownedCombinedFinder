@@ -373,9 +373,9 @@ bool inside(const Config &cfg, int x, int z) {
 
 bool better(const Hit &a, const Hit &b, const Config &cfg) {
 
-    if (scoreKey(a, cfg) != scoreKey(b, cfg))
+    if (scoreKey(a) != scoreKey(b))
 
-        return scoreKey(a, cfg) > scoreKey(b, cfg);
+        return scoreKey(a) > scoreKey(b);
 
     return std::tuple(distanceSquared(cfg,a.x,a.z),a.x,a.z) <
 
@@ -431,31 +431,25 @@ throw std::invalid_argument("threads须为1至32，limit须为1至100000");
     if (cfg.minArea < 0 || cfg.minDistance < 0)
 throw std::invalid_argument("面积下限与热点间距不能为负");
 
-    // S1：折算系数须在 (0, 1] 闭区间；未传时由默认值兜底。
-    if (!(cfg.caveConversion > 0.0) || cfg.caveConversion > 1.0)
-        throw std::invalid_argument("caveConversion须在0至1之间（不含0，含1）");
-
     if (cfg.simulationDistanceChunks < 1 || cfg.simulationDistanceChunks > 32)
 throw std::invalid_argument("模拟距离须为1至32整数区块");
 
-// ---- 自定义 Y 范围（C6 / S3） ----
-    // S3：纯河流不再强制单层，沿用用户的 yMin/yMax（只统计河流），
-    // 所以等效河流面积的 score 可以超过单层上限 49640（即 >100%）。
-    {
+// ---- 自定义 Y 范围（C6） ----
+    if (cfg.includeCaves) {
         if (cfg.yMin > cfg.yMax)
             throw std::invalid_argument("yMin不得大于yMax");
         if (cfg.yMin < -64 || cfg.yMax > 320)
-            throw std::invalid_argument("层范围须在-64至320内");
+throw std::invalid_argument("层范围须在-64至320内");
         const int span = cfg.yMax - cfg.yMin + 1;
         if (span > 320)
-            throw std::invalid_argument("层范围过大");
-        if (cfg.includeCaves) {
-            if (span > 24)
-                cfg.warnings.push_back("高度范围超过24格，可能导致搜索变慢，是否继续？");
-            if (cfg.yMin > -58)
-                cfg.warnings.push_back("最低高度高于-58，可能不满足低Y农场前提，是否继续？");
-        }
-        // 纯河流模式保留用户的 yMin/yMax —— 由宿主负责按挂机Y±24 裁剪。
+throw std::invalid_argument("层范围过大");
+        if (span > 24)
+cfg.warnings.push_back("高度范围超过24格，可能导致搜索变慢，是否继续？");
+        if (cfg.yMin > -58)
+cfg.warnings.push_back("最低高度高于-58，可能不满足低Y农场前提，是否继续？");
+    } else {
+// 纯河流只统计 Y=-63 一层（计划 §15）。
+        cfg.yMin = cfg.yMax = -63;
     }
     // 挂机 Y：默认 = yMin + 23（球壳平台内、给最低层留一格余量，与 B 一致）；
     // --optimize-player-y 仍走平台解析解（所有层都在 ±24 内，总分与 Y 无关）。
@@ -1342,7 +1336,7 @@ std::vector<Hit> coarseTile(Local &local, const Config &cfg, int tx, int tz, int
             if (!window.hasTargets(px,pz,radius))
                 continue;
             auto hit = window.evaluate(cfg,px,pz,cfg.playerY,true,&local.geometry);
-            if (scoreKey(hit,cfg) == 0 || score(hit,cfg) < cfg.minArea*0.5)
+            if (scoreKey(hit) == 0 || score(hit,cfg) < cfg.minArea*0.5)
                 continue;
             auto key = std::pair(floorDiv(px,256),floorDiv(pz,256));
             auto it = peaks.find(key);
@@ -1406,7 +1400,7 @@ Hit refine(Local &local, const Config &cfg, const Hit &seed, Control &control) {
 
     local.geometryMs += milliseconds(time);
 
-    if (!found || scoreKey(best,cfg) == 0)
+    if (!found || scoreKey(best) == 0)
 
         return {};
 
@@ -1464,7 +1458,7 @@ Hit refineExact(Local &local, const Config &cfg, const Hit &best, Control &contr
 // （100k 洞穴对照：precise 线程耗时 118s → 129s，候选逐条一致），
 // 因此只在旧的 optimizePlayerY 兼容路径上保留；默认走平台解析解。
         if (cfg.optimizePlayerY && found &&
-            scoreKey(precise->evaluate(cfg,x,z,cfg.playerY,true,&local.geometry),cfg) < scoreKey(final,cfg))
+            scoreKey(precise->evaluate(cfg,x,z,cfg.playerY,true,&local.geometry)) < scoreKey(final))
             return;
 
         auto hit = precise->bestHeight(cfg,x,z,&control,&local.geometry);
@@ -1577,11 +1571,15 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     uint64_t nx = (maxX-minX)/tile+1, nz = (maxZ-minZ)/tile+1;
 
-    auto compare = [&](const Hit &a,const Hit &b) { return better(a,b,cfg); };
-
-    std::priority_queue<Hit,std::vector<Hit>,decltype(compare)> pool(compare);
+    /* 每线程本地 top-K：候选池不再共享，避免每块都在全局锁下重排
+     * （大半径下这是主要串行点；作者实测 1e6 半径由“卡死”降到分钟级）。 */
+    std::vector<std::vector<Hit>> local(workers.size());
 
     std::atomic<int64_t> coarseCutoff{0};
+
+    std::atomic<int64_t> candidates{0};
+
+    std::atomic<int64_t> scanned{0};
 
     std::mutex mutex;
 
@@ -1590,6 +1588,25 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
     auto lastEmit = started-std::chrono::seconds(1);
 
     result.statistics.totalChunks = nx*nz;
+
+    /* better 越小越优，大顶堆顶就是本线程当前最差的一条。 */
+    auto heapPush = [&](std::vector<Hit> &heap,const Hit &hit) {
+        auto compare = [&](const Hit &a,const Hit &b) { return better(a,b,cfg); };
+
+        size_t capacity = size_t(cfg.candidateBudget);
+
+        if (heap.size() < capacity) {
+            heap.push_back(hit);
+            std::push_heap(heap.begin(),heap.end(),compare);
+            return;
+        }
+
+        if (better(hit,heap.front(),cfg)) {
+            std::pop_heap(heap.begin(),heap.end(),compare);
+            heap.back() = hit;
+            std::push_heap(heap.begin(),heap.end(),compare);
+        }
+    };
 
     parallel(nx*nz,cfg.threads,control,[&](uint64_t index,int worker) {
 
@@ -1613,37 +1630,37 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
             coarseCutoff.load(std::memory_order_relaxed)) : std::vector<Hit>{};
 
-        std::lock_guard lock(mutex);
+        auto &heap = local[size_t(worker)];
 
-        for (const auto &hit : values) {
+        for (const auto &hit : values)
 
-            ++result.statistics.coarseCandidates;
+            heapPush(heap,hit);
 
-            if (pool.size() < size_t(cfg.candidateBudget))
+        candidates.fetch_add(int64_t(values.size()),std::memory_order_relaxed);
 
-                pool.push(hit);
+        if (heap.size() == size_t(cfg.candidateBudget)) {
 
-            else if (better(hit,pool.top(),cfg)) {
+            ExactScore key = std::min(scoreKey(heap.front()),ExactScore(std::numeric_limits<int64_t>::max()));
 
-                pool.pop();
+            int64_t previous = coarseCutoff.load(std::memory_order_relaxed);
 
-                pool.push(hit);
+            while (int64_t(key) > previous &&
+
+                   !coarseCutoff.compare_exchange_weak(previous,int64_t(key),std::memory_order_relaxed)) {
 
             }
 
         }
 
-        if (pool.size() == size_t(cfg.candidateBudget)) {
-
-            ExactScore key = std::min(scoreKey(pool.top(),cfg),ExactScore(std::numeric_limits<int64_t>::max()));
-
-            coarseCutoff.store(int64_t(key),std::memory_order_relaxed);
-
-        }
-
-        ++result.statistics.scannedChunks;
+        scanned.fetch_add(1,std::memory_order_relaxed);
 
         if (progress && Clock::now()-lastEmit >= std::chrono::milliseconds(70)) {
+
+            std::lock_guard lock(mutex);
+
+            result.statistics.coarseCandidates = candidates.load(std::memory_order_relaxed);
+
+            result.statistics.scannedChunks = scanned.load(std::memory_order_relaxed);
 
             result.statistics.activeMs = control.activeMilliseconds();
 
@@ -1654,6 +1671,10 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
         }
 
     });
+
+    result.statistics.coarseCandidates = candidates.load(std::memory_order_relaxed);
+
+    result.statistics.scannedChunks = scanned.load(std::memory_order_relaxed);
 
     if (progress) {
 
@@ -1667,11 +1688,17 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     std::vector<Hit> seeds;
 
-    while (!pool.empty()) {
+    for (auto &heap : local)
 
-        seeds.push_back(pool.top());
+        seeds.insert(seeds.end(),heap.begin(),heap.end());
 
-        pool.pop();
+    if (seeds.size() > size_t(cfg.candidateBudget)) {
+
+        std::partial_sort(seeds.begin(),seeds.begin()+std::ptrdiff_t(cfg.candidateBudget),seeds.end(),
+
+                          [&](const Hit &a,const Hit &b) { return better(a,b,cfg); });
+
+        seeds.resize(size_t(cfg.candidateBudget));
 
     }
 
@@ -1703,7 +1730,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
         auto hit = refine(workers[worker],cfg,seeds[index],control);
 
-        if (inside(cfg,hit.x,hit.z) && scoreKey(hit,cfg) > 0)
+        if (inside(cfg,hit.x,hit.z) && scoreKey(hit) > 0)
 
             workers[worker].hits.push_back(hit);
 
@@ -1763,7 +1790,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
         auto hit = refineExact(workers[worker],cfg,finalists[index],control);
 
-        if (inside(cfg,hit.x,hit.z) && meetsMinimum(hit,cfg) && scoreKey(hit,cfg) > 0)
+        if (inside(cfg,hit.x,hit.z) && meetsMinimum(hit,cfg) && scoreKey(hit) > 0)
 
             workers[worker].hits.push_back(hit);
 
@@ -2036,7 +2063,7 @@ static SearchResult searchPit(Config cfg, Control &control, const ProgressCallba
         // §10.2：pit 附近不计河流面积。
         best.riverArea = 0;
         best.riverVolume = 0;
-        if (scoreKey(best,cfg) > 0)
+        if (scoreKey(best) > 0)
             coarse.push_back(best);
         if (progress && (i & 15) == 0) {
             result.statistics.activeMs = control.activeMilliseconds();
@@ -2144,7 +2171,7 @@ SearchResult search(Config cfg, Control &control, const ProgressCallback &progre
 
     if (cfg.minArea > pureUpper ||
 
-        (first.hits.size() == size_t(cfg.top) && scoreKey(first.hits.back(),cfg) > upper)) {
+        (first.hits.size() == size_t(cfg.top) && scoreKey(first.hits.back()) > upper)) {
 
         applyBenchStatistics(first);
 
