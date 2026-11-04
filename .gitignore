@@ -1,0 +1,55 @@
+build/
+results/
+logs/
+docs/记录/
+__pycache__/
+*.tmp
+
+# 官方验证环境会下载运行依赖，不能作为算法源码提交。
+libraries/
+versions/
+
+# --- IDE / 编辑器本地状态 ---
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
+.idea/libraries/
+.idea/
+*.iml
+
+# --- 构建产物 ---
+build-*/
+cmake-build-*/
+CMakeUserPresets.json
+compile_commands.json
+CMakeFiles/
+CMakeCache.txt
+*.ninja
+.ninja_deps
+.ninja_log
+*.o
+*.obj
+*.a
+*.lib
+*.exe
+*.dll
+*.pdb
+*.log
+
+# --- 运行输出 ---
+out/
+output/
+*.jsonl
+
+# --- 本地环境与缓存 ---
+.venv/
+venv/
+*.pyc
+.pytest_cache/
+.cache/
+.DS_Store
+Thumbs.db
+desktop.ini

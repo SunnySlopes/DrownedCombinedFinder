@@ -1,0 +1,757 @@
+{
+  "model": "drowned-weighted-area-v1",
+  "scope": "原版生成表与低Y群系抽样；非实际产量或全地图最优证明",
+  "coefficient": {
+    "numerator": 7011,
+    "denominator": 4880,
+    "theoretical": true
+  },
+  "jsonTables": [
+    {
+      "version": "1.19.4",
+      "jarSha256": "75a895446e216d24f282f0c3c63503e7537db9323104449343fa87cdfc97d372",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.20.1",
+      "jarSha256": "80db52b203ac5de6e5fc1c5082259df440fb2b5390b4c61d474e8fbc63cc41f5",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.20.4",
+      "jarSha256": "cbdcda0c55a9c9c38e04e6911e06802d3dec28ca249925104b7246e240e5215d",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.20.6",
+      "jarSha256": "bb610daa96b3784645b78fd7c0b887291414c9605cd913fc79cf985f523f4f5b",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21",
+      "jarSha256": "8d47de9a76ab47186deba6c9beda6f9345c6f73618fa5a157c57608be0505a01",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.1",
+      "jarSha256": "c301de10f575027d13eac18c7f34409d60648cf56a35d566aa1f530ff617840a",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.10",
+      "jarSha256": "2e2867d1c6559bdb660808deaeccb12c9ca41eb04e7b4e2adae87546e1878184",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.11",
+      "jarSha256": "ec47239a8de246335e1d54f6ac319bd35641778eb4b6a6da06372840d02fcebc",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.2",
+      "jarSha256": "c573440d88a5f67c2f150305cdb729594b665f521e35b51e2f3191de22985a30",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.3",
+      "jarSha256": "0c03e0748072930d25903798c5b1ece592c461a1060ceca6e1a548de02f75711",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.4",
+      "jarSha256": "de9538d2497c8f4174805f3fcedb8ade3060446aa203f351b820ea5bd04adbf4",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.5",
+      "jarSha256": "e6d853588b55572d05087026098cb630ae1bf1b980f30becfdf0c5906e960dae",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.6",
+      "jarSha256": "4ebf329faca140f5383efdb3002b2b0311ed1e0df1415b43fa23fb98cfab1a56",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.7",
+      "jarSha256": "3f64a74eb5d7951a7c7bd46b43b01f2bae31bda061407f2ee7567297a47e9159",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.8",
+      "jarSha256": "2bee159e4ce87ae857b4323f9f32c7a3d7d448f7f8c3f62fa6f295a72e228250",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "1.21.9",
+      "jarSha256": "8218472d58bf3aba49b51e777621f9ed19f95dbd4f0b687a45f97c2ebefa2351",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "26.1",
+      "jarSha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "26.1.1",
+      "jarSha256": "3647564632a2f589be2a87bf544f628e5f67cb3780c86f7fa972ec36892aa081",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "26.1.2",
+      "jarSha256": "4723380bd2a0a0206719b50f2e390383afdaf82b0a76a0d573baf788e6aa3e86",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "26.2",
+      "jarSha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 1,
+            "minCount": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "maxCount": 4,
+            "minCount": 4,
+            "weight": 95
+          }
+        }
+      }
+    },
+    {
+      "version": "26.3",
+      "jarSha256": "a362163eec5d1612d520772bc16e5b39c09e3b234fdc045f56bf544284ee8ae6",
+      "biomes": {
+        "river": {
+          "totalWeight": 615,
+          "entry": {
+            "type": "minecraft:drowned",
+            "count": 1,
+            "weight": 100
+          }
+        },
+        "dripstone_caves": {
+          "totalWeight": 610,
+          "entry": {
+            "type": "minecraft:drowned",
+            "count": 4,
+            "weight": 95
+          }
+        }
+      }
+    }
+  ],
+  "earlyRegistries": [
+    {
+      "version": "1.18",
+      "sourceJarSha256": "929f0e76841f1078286515f323e39391002f585df1dde26f79b99c20611525d1",
+      "records": [
+        "river 615 100 1 1",
+        "dripstone_caves 610 95 4 4"
+      ]
+    },
+    {
+      "version": "1.18.1",
+      "sourceJarSha256": "b17f5084b6d6a3b09f0a669c2121fa0f06ee133b19a339681265a859470b6977",
+      "records": [
+        "river 615 100 1 1",
+        "dripstone_caves 610 95 4 4"
+      ]
+    },
+    {
+      "version": "1.18.2",
+      "sourceJarSha256": "d077eb744a1263c8527cb8ed33e03658cb8a9b4a545d3cf81200c09d1af174f4",
+      "records": [
+        "river 615 100 1 1",
+        "dripstone_caves 610 95 4 4"
+      ]
+    },
+    {
+      "version": "1.19.2",
+      "sourceJarSha256": "887e7a6a1bca832081355c849ed26a498c818cc047078a783f6e0b525273816c",
+      "records": [
+        "river 615 100 1 1",
+        "dripstone_caves 610 95 4 4"
+      ]
+    },
+    {
+      "version": "1.19.3",
+      "sourceJarSha256": "24bb94e2bb5b52641c2aaf720cef9847e34c099a357b44bda08d794c957e1bff",
+      "records": [
+        "river 615 100 1 1",
+        "dripstone_caves 610 95 4 4"
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "version": "1.18",
+      "jarSha256": "929f0e76841f1078286515f323e39391002f585df1dde26f79b99c20611525d1",
+      "class": "net.minecraft.world.entity.monster.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "2292024fb0e54b24eefe301e7bb98796b7dd9c150563fad27697b7d1d6df4a1e"
+    },
+    {
+      "version": "1.18.1",
+      "jarSha256": "b17f5084b6d6a3b09f0a669c2121fa0f06ee133b19a339681265a859470b6977",
+      "class": "net.minecraft.world.entity.monster.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "2292024fb0e54b24eefe301e7bb98796b7dd9c150563fad27697b7d1d6df4a1e"
+    },
+    {
+      "version": "1.18.2",
+      "jarSha256": "d077eb744a1263c8527cb8ed33e03658cb8a9b4a545d3cf81200c09d1af174f4",
+      "class": "net.minecraft.world.entity.monster.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "eca9df12ba318af13ce68bfec6e62668a9f32761e2bdd2688da27f816a2997be"
+    },
+    {
+      "version": "1.19.2",
+      "jarSha256": "887e7a6a1bca832081355c849ed26a498c818cc047078a783f6e0b525273816c",
+      "class": "net.minecraft.world.entity.monster.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "d3959a16ada150d5e58fce26a3b586e6b43f7b1c8db83489b30e9b5581bd50a9"
+    },
+    {
+      "version": "1.19.3",
+      "jarSha256": "24bb94e2bb5b52641c2aaf720cef9847e34c099a357b44bda08d794c957e1bff",
+      "class": "net.minecraft.world.entity.monster.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "d3959a16ada150d5e58fce26a3b586e6b43f7b1c8db83489b30e9b5581bd50a9"
+    },
+    {
+      "version": "1.21.5",
+      "jarSha256": "e6d853588b55572d05087026098cb630ae1bf1b980f30becfdf0c5906e960dae",
+      "class": "coy",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "5763d170b6b58be4bb3939cd5ad10b8da0eeddfe711cff7422597788b77f0760"
+    },
+    {
+      "version": "26.1",
+      "jarSha256": "a7fed6f7d88379349e35ae0c6e9881d4484605132f6f620376a3868eea6cce52",
+      "class": "net.minecraft.world.entity.monster.zombie.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "4800ed03f7915a1ec1a91c0d78e90a397a1ee7ee2477ef51bc234c1f3c4b3503"
+    },
+    {
+      "version": "26.2",
+      "jarSha256": "183c0499c5f855570ee487dd38e141a53f0121f83a0b07a3bac2d8b6698823e8",
+      "class": "net.minecraft.world.entity.monster.zombie.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "a361f142bd910b56e94656d26a86db9b77836e7a9368313ab2a4f339670a35cc"
+    },
+    {
+      "version": "26.3",
+      "jarSha256": "a362163eec5d1612d520772bc16e5b39c09e3b234fdc045f56bf544284ee8ae6",
+      "class": "net.minecraft.world.entity.monster.zombie.Drowned",
+      "predicateFrequencyDenominators": [
+        15,
+        40
+      ],
+      "predicateBytecodeSha256": "ed676d852df8628d1290242c3ec65dd446629691a3a00a06043ef7cfcd891bd7"
+    }
+  ],
+  "biomeSamples": [
+    {
+      "version": "1.18",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 0,
+      "originalFileSha256": "e41c195cb17555f3f83a48a381dfd89cfcd668577008fcf7cfd28716da8c7518"
+    },
+    {
+      "version": "1.18.1",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 0,
+      "originalFileSha256": "e41c195cb17555f3f83a48a381dfd89cfcd668577008fcf7cfd28716da8c7518"
+    },
+    {
+      "version": "1.18.2",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 0,
+      "originalFileSha256": "a6922ab6beef849b1b4964ac2272578c3a05e5e5afee4b46033a8ebb16ff097c"
+    },
+    {
+      "version": "1.19.3",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 117,
+      "originalFileSha256": "012b09ba88385797466754c46ee8e4a221005464bad6f10fef844869479a6b60"
+    },
+    {
+      "version": "1.21.5",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 117,
+      "originalFileSha256": "30ec6b1513453f50a68c69e54db62de296df2580e4ce3749d357d357dc9e4341"
+    },
+    {
+      "version": "26.1",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 117,
+      "originalFileSha256": "30ec6b1513453f50a68c69e54db62de296df2580e4ce3749d357d357dc9e4341"
+    },
+    {
+      "version": "26.2",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 117,
+      "originalFileSha256": "30ec6b1513453f50a68c69e54db62de296df2580e4ce3749d357d357dc9e4341"
+    },
+    {
+      "version": "26.3",
+      "points": 351,
+      "differences": 0,
+      "river": 150,
+      "dripstoneCaves": 84,
+      "deepDark": 117,
+      "originalFileSha256": "b88802dc975f0a3376394b8e1821d6ac1783585a134b844721f105b03848ca0b"
+    }
+  ],
+  "referenceSha256": "be3750b86b8523fc07f7f288adbdb7ef3bf5db41391de3c9c7f51011d3a40ff0",
+  "threeLayerVsFull": [
+    {
+      "x": -8192,
+      "z": -6144,
+      "blocksPerLayer": 9,
+      "river13": 9.0,
+      "river3": 9.0,
+      "dripstone_caves13": 0.0,
+      "dripstone_caves3": 0.0,
+      "deep_dark13": 0.0,
+      "deep_dark3": 0.0
+    },
+    {
+      "x": 4608,
+      "z": 512,
+      "blocksPerLayer": 9,
+      "river13": 2.5384615384615383,
+      "river3": 1.6666666666666667,
+      "dripstone_caves13": 6.461538461538462,
+      "dripstone_caves3": 7.333333333333333,
+      "deep_dark13": 0.0,
+      "deep_dark3": 0.0
+    },
+    {
+      "x": -8192,
+      "z": 2048,
+      "blocksPerLayer": 9,
+      "river13": 0.0,
+      "river3": 0.0,
+      "dripstone_caves13": 0.0,
+      "dripstone_caves3": 0.0,
+      "deep_dark13": 9.0,
+      "deep_dark3": 9.0
+    }
+  ]
+}
