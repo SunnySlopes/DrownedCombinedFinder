@@ -15,6 +15,8 @@
 namespace riverfinder_native {
 using Clock = std::chrono::steady_clock;
 constexpr int kWorldMin = -30000000, kWorldMax = 29999999;
+/** caveConversion 的默认值；用于"未传 → 走旧口径快路径"的判定。 */
+constexpr double kDefaultCaveConversion = 4880.0 / 7011.0;
 
 /**
  * 固定挂机 Y 的“自动”哨兵（对齐 B 的 AFK_Y_AUTO）。
@@ -203,8 +205,20 @@ int64_t distanceSquared(const Config &cfg, int x, int z);
 bool better(const Hit &a, const Hit &b, const Config &cfg);
 double score(const Hit &hit, const Config &cfg);
 std::string scoreNumerator(const Hit &hit);
+/** 与新口径分子（含 caveConversion），返回 "分子/分母" 文本。 */
+std::string scoreNumerator(const Hit &hit, const Config &cfg);
 int scoreDenominator(const Config &cfg);
 void validate(Config &cfg);
+
+/**
+ * 等效溶洞面积（S1）：把 caveVolume 按 caveConversion 折算成"河流层当量格数"。
+ * 返回值 = round(caveVolume * caveConversion / layers)，
+ * 前端「等效溶洞面积」直接用这个值，与标量 score 同口径。
+ */
+int64_t equivalentCaveArea(const Hit &hit, const Config &cfg);
+
+/** 单层的河流当量上限（纯河流单层满环 = 49640）。用于 >100% 判断。 */
+constexpr int kPureRiverLayerCap = 49640;
 
 using ProgressCallback = std::function<void(const Statistics &)>;
 SearchResult search(Config cfg, Control &control, const ProgressCallback &progress = {});
