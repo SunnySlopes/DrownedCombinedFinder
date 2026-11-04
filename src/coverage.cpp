@@ -1,4 +1,4 @@
-#include "coverage.hpp"
+﻿#include "coverage.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -11,6 +11,31 @@ int floorDiv(int value, int divisor) {
     return value / divisor - (value % divisor < 0);
 }
 
+// S1：caveConversion 参与计分。
+// 溶洞体积按 cfg.caveConversion（默认 4880/7011）折算成"等效河流格"。
+// 为避免浮点误差，用有理数 num/den 放大：权重 = kRiverWeight * num / den。
+// 默认值 (4880, 7011) 时走快路径，结果与旧版逐位一致。
+static void caveConversionRatio(const Config &cfg, int64_t &num, int64_t &den) {
+    constexpr int64_t kScale = 1000000;   // 小数部分保留 6 位
+    if (cfg.caveConversion == kDefaultCaveConversion) {
+        num = kCaveWeight;                // 7011
+        den = kRiverWeight;               // 4880  → 7011/4880
+        return;
+    }
+    double v = cfg.caveConversion;
+    if (!(v >= 0.0)) v = 0.0;             // NaN / 负数一律按 0
+    num = std::llround(v * double(kScale));
+    den = kScale;
+}
+
+ExactScore scoreKey(const Hit &hit, const Config &cfg) {
+    int64_t num = 0, den = 1;
+    caveConversionRatio(cfg, num, den);
+    // scoreKey ≡ (kRiverWeight*den*riverVolume + kRiverWeight*num*caveVolume) / den
+    return ExactScore(kRiverWeight) * den * hit.riverVolume
+         + ExactScore(kRiverWeight) * num * hit.caveVolume;
+}
+
 ExactScore scoreKey(const Hit &hit) {
     return ExactScore(kRiverWeight) * hit.riverVolume + ExactScore(kCaveWeight) * hit.caveVolume;
 }
@@ -21,6 +46,33 @@ int scoreDenominator(const Config &cfg) {
 
 double score(const Hit &hit, const Config &cfg) {
     return double(scoreKey(hit)) / scoreDenominator(cfg);
+}
+
+// S1：等效溶洞面积 = round(caveVolume * caveConversion / layers)
+int64_t equivalentCaveArea(const Hit &hit, const Config &cfg) {
+    const int layers = layersOf(cfg) > 0 ? layersOf(cfg) : 1;
+    if (!cfg.includeCaves || hit.caveVolume <= 0) return 0;
+    const double v = double(hit.caveVolume) * cfg.caveConversion / double(layers);
+    return int64_t(std::llround(v));
+}
+
+// 与 Config 相关的分子文本（含 caveConversion），用于结果 JSON 的无损表达。
+std::string scoreNumerator(const Hit &hit, const Config &cfg) {
+    int64_t num = 0, den = 1;
+    caveConversionRatio(cfg, num, den);
+    auto value = scoreKey(hit, cfg);
+    if (!value) return "0";
+    std::string text;
+    while (value) { text.push_back(char('0' + int(value % 10))); value /= 10; }
+    std::reverse(text.begin(), text.end());
+    // 分母 = scoreDenominator * den，调用方需要知道放大倍数
+    return text + "/" + std::to_string(int64_t(scoreDenominator(cfg)) * den);
+}
+// 与 Config 相关的精确评分（含 caveConversion）。分母同步乘 den 以保持量纲。
+double scoreExact(const Hit &hit, const Config &cfg) {
+    int64_t num = 0, den = 1;
+    caveConversionRatio(cfg, num, den);
+    return double(scoreKey(hit, cfg)) / (double(scoreDenominator(cfg)) * double(den));
 }
 
 std::string scoreNumerator(const Hit &hit) {
@@ -37,7 +89,10 @@ std::string scoreNumerator(const Hit &hit) {
 }
 
 bool meetsMinimum(const Hit &hit, const Config &cfg) {
-    return scoreKey(hit) >= ExactScore(cfg.minArea) * scoreDenominator(cfg);
+    int64_t num = 0, den = 1;
+    caveConversionRatio(cfg, num, den);
+    // 两侧同乘 den，保持与 scoreKey(hit, cfg) 同口径
+    return scoreKey(hit, cfg) >= ExactScore(cfg.minArea) * scoreDenominator(cfg) * den;
 }
 
 

@@ -9,11 +9,14 @@
 namespace riverfinder_native {
 using ExactScore = __int128;
 
+ExactScore scoreKey(const Hit &hit, const Config &cfg);
 ExactScore scoreKey(const Hit &hit);
 bool meetsMinimum(const Hit &hit, const Config &cfg);
 int floorDiv(int value, int divisor);
 int64_t pureRiverUpperBound(const Config &cfg);
 bool naturalChunk(int cx, int cz, int x, int z, int simulationDistance);
+/// 与 Config 相关的精确评分（含 caveConversion），保留完整精度。
+double scoreExact(const Hit &hit, const Config &cfg);
 
 struct GeometryRow {
     int dz, outer, inner;

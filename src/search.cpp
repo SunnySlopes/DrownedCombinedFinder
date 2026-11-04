@@ -373,9 +373,9 @@ bool inside(const Config &cfg, int x, int z) {
 
 bool better(const Hit &a, const Hit &b, const Config &cfg) {
 
-    if (scoreKey(a) != scoreKey(b))
+    if (scoreKey(a, cfg) != scoreKey(b, cfg))
 
-        return scoreKey(a) > scoreKey(b);
+        return scoreKey(a, cfg) > scoreKey(b, cfg);
 
     return std::tuple(distanceSquared(cfg,a.x,a.z),a.x,a.z) <
 
@@ -431,25 +431,31 @@ throw std::invalid_argument("threads须为1至32，limit须为1至100000");
     if (cfg.minArea < 0 || cfg.minDistance < 0)
 throw std::invalid_argument("面积下限与热点间距不能为负");
 
+    // S1：折算系数须在 (0, 1] 闭区间；未传时由默认值兜底。
+    if (!(cfg.caveConversion > 0.0) || cfg.caveConversion > 1.0)
+        throw std::invalid_argument("caveConversion须在0至1之间（不含0，含1）");
+
     if (cfg.simulationDistanceChunks < 1 || cfg.simulationDistanceChunks > 32)
 throw std::invalid_argument("模拟距离须为1至32整数区块");
 
-// ---- 自定义 Y 范围（C6） ----
-    if (cfg.includeCaves) {
+// ---- 自定义 Y 范围（C6 / S3） ----
+    // S3：纯河流不再强制单层，沿用用户的 yMin/yMax（只统计河流），
+    // 所以等效河流面积的 score 可以超过单层上限 49640（即 >100%）。
+    {
         if (cfg.yMin > cfg.yMax)
             throw std::invalid_argument("yMin不得大于yMax");
         if (cfg.yMin < -64 || cfg.yMax > 320)
-throw std::invalid_argument("层范围须在-64至320内");
+            throw std::invalid_argument("层范围须在-64至320内");
         const int span = cfg.yMax - cfg.yMin + 1;
         if (span > 320)
-throw std::invalid_argument("层范围过大");
-        if (span > 24)
-cfg.warnings.push_back("高度范围超过24格，可能导致搜索变慢，是否继续？");
-        if (cfg.yMin > -58)
-cfg.warnings.push_back("最低高度高于-58，可能不满足低Y农场前提，是否继续？");
-    } else {
-// 纯河流只统计 Y=-63 一层（计划 §15）。
-        cfg.yMin = cfg.yMax = -63;
+            throw std::invalid_argument("层范围过大");
+        if (cfg.includeCaves) {
+            if (span > 24)
+                cfg.warnings.push_back("高度范围超过24格，可能导致搜索变慢，是否继续？");
+            if (cfg.yMin > -58)
+                cfg.warnings.push_back("最低高度高于-58，可能不满足低Y农场前提，是否继续？");
+        }
+        // 纯河流模式保留用户的 yMin/yMax —— 由宿主负责按挂机Y±24 裁剪。
     }
     // 挂机 Y：默认 = yMin + 23（球壳平台内、给最低层留一格余量，与 B 一致）；
     // --optimize-player-y 仍走平台解析解（所有层都在 ±24 内，总分与 Y 无关）。
@@ -1336,7 +1342,7 @@ std::vector<Hit> coarseTile(Local &local, const Config &cfg, int tx, int tz, int
             if (!window.hasTargets(px,pz,radius))
                 continue;
             auto hit = window.evaluate(cfg,px,pz,cfg.playerY,true,&local.geometry);
-            if (scoreKey(hit) == 0 || score(hit,cfg) < cfg.minArea*0.5)
+            if (scoreKey(hit,cfg) == 0 || score(hit,cfg) < cfg.minArea*0.5)
                 continue;
             auto key = std::pair(floorDiv(px,256),floorDiv(pz,256));
             auto it = peaks.find(key);
@@ -1400,7 +1406,7 @@ Hit refine(Local &local, const Config &cfg, const Hit &seed, Control &control) {
 
     local.geometryMs += milliseconds(time);
 
-    if (!found || scoreKey(best) == 0)
+    if (!found || scoreKey(best,cfg) == 0)
 
         return {};
 
@@ -1458,7 +1464,7 @@ Hit refineExact(Local &local, const Config &cfg, const Hit &best, Control &contr
 // （100k 洞穴对照：precise 线程耗时 118s → 129s，候选逐条一致），
 // 因此只在旧的 optimizePlayerY 兼容路径上保留；默认走平台解析解。
         if (cfg.optimizePlayerY && found &&
-            scoreKey(precise->evaluate(cfg,x,z,cfg.playerY,true,&local.geometry)) < scoreKey(final))
+            scoreKey(precise->evaluate(cfg,x,z,cfg.playerY,true,&local.geometry),cfg) < scoreKey(final,cfg))
             return;
 
         auto hit = precise->bestHeight(cfg,x,z,&control,&local.geometry);
@@ -1629,7 +1635,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
         if (pool.size() == size_t(cfg.candidateBudget)) {
 
-            ExactScore key = std::min(scoreKey(pool.top()),ExactScore(std::numeric_limits<int64_t>::max()));
+            ExactScore key = std::min(scoreKey(pool.top(),cfg),ExactScore(std::numeric_limits<int64_t>::max()));
 
             coarseCutoff.store(int64_t(key),std::memory_order_relaxed);
 
@@ -1697,7 +1703,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
         auto hit = refine(workers[worker],cfg,seeds[index],control);
 
-        if (inside(cfg,hit.x,hit.z) && scoreKey(hit) > 0)
+        if (inside(cfg,hit.x,hit.z) && scoreKey(hit,cfg) > 0)
 
             workers[worker].hits.push_back(hit);
 
@@ -1757,7 +1763,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
         auto hit = refineExact(workers[worker],cfg,finalists[index],control);
 
-        if (inside(cfg,hit.x,hit.z) && meetsMinimum(hit,cfg) && scoreKey(hit) > 0)
+        if (inside(cfg,hit.x,hit.z) && meetsMinimum(hit,cfg) && scoreKey(hit,cfg) > 0)
 
             workers[worker].hits.push_back(hit);
 
@@ -2030,7 +2036,7 @@ static SearchResult searchPit(Config cfg, Control &control, const ProgressCallba
         // §10.2：pit 附近不计河流面积。
         best.riverArea = 0;
         best.riverVolume = 0;
-        if (scoreKey(best) > 0)
+        if (scoreKey(best,cfg) > 0)
             coarse.push_back(best);
         if (progress && (i & 15) == 0) {
             result.statistics.activeMs = control.activeMilliseconds();
@@ -2138,7 +2144,7 @@ SearchResult search(Config cfg, Control &control, const ProgressCallback &progre
 
     if (cfg.minArea > pureUpper ||
 
-        (first.hits.size() == size_t(cfg.top) && scoreKey(first.hits.back()) > upper)) {
+        (first.hits.size() == size_t(cfg.top) && scoreKey(first.hits.back(),cfg) > upper)) {
 
         applyBenchStatistics(first);
 
