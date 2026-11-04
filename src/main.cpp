@@ -44,6 +44,7 @@ R"(river-native —— 低Y溺尸农场搜索后端
         --optimize-player-y（计算最佳挂机Y，平台解析解）
 折算:   --include-caves（关闭时仅Y=-63普通河流，开启后按yMin..yMax逐层统计）
 筛选:   --min-area 34748 --min-distance 256 --candidate-budget 0
+        --exact-budget 0（0=自动：max(768, 8*top, candidate-budget/16)）
         三字段: --min-river-area R --min-cave-area C（门槛 = R + 1.43668·C）
         --approximate-gate / --no-approximate-gate（八度早退与 weird 早退同开关）
         --pure-river-cache auto|on|off --pure-river-mask 32|64 --pit --bench
@@ -176,6 +177,7 @@ int run(const std::vector<std::string> &input) {
         else if (name == "--player-y") key = "playerY";
         else if (name == "--min-distance") key = "minDistance";
         else if (name == "--candidate-budget") key = "candidateBudget";
+        else if (name == "--exact-budget") key = "exactBudget";
         else if (name == "--pure-river-mask") key = "pureRiverMaskStep";
         else if (name == "--y-min") key = "yMin";
         else if (name == "--y-max") key = "yMax";

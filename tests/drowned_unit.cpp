@@ -160,10 +160,11 @@ int main() {
         verifyCoarseMask();
         verifySparseRows();
         Config defaults;
-        check(defaults.playerY == -40,"默认挂机Y为-40");
+        // 未 validate 时 playerY 是“自动”哨兵，validate() 才解析成 yMin + 23 = -40。
+        check(defaults.playerY == kPlayerYAuto,"默认挂机Y为自动哨兵");
         check(!defaults.optimizePlayerY,"默认不计算最佳Y");
         validate(defaults);
-        check(defaults.playerY == -40,"未计算最佳Y时保留默认-40");
+        check(defaults.playerY == -40,"未计算最佳Y时解析为yMin+23=-40");
         defaults.playerY = -55;
         validate(defaults);
         check(defaults.playerY == -55,"--player-y可覆盖默认挂机Y");

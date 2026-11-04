@@ -513,6 +513,12 @@ throw std::invalid_argument("候选预算不能为负");
     if (cfg.candidateBudget < cfg.top)
 throw std::invalid_argument("候选预算不能小于结果数量");
 
+    // 精确预算（优化 3）：0=自动；>0 时必须不小结果数量，也不超过候选预算。
+    if (cfg.exactBudget < 0)
+throw std::invalid_argument("精算预算不能为负");
+    if (cfg.exactBudget > 0 && cfg.exactBudget < cfg.top)
+throw std::invalid_argument("精算预算不能小于结果数量");
+
     versionInfo(cfg.version);
 
     parseSeed(cfg.seed);
@@ -701,6 +707,10 @@ struct Local {
     };
 
     std::vector<Cache> windows;
+
+    // 精算窗口缓存容量（优化 2）：同一线程的相邻最终候选经常落在同一窗口内，
+    // 2 个槽位在 1024 个精算候选中命中率很低；提到 12 个几乎零成本。
+    static constexpr size_t kPreciseWindowCacheSize = 12;
 
     std::unordered_map<uint64_t, std::array<float, NP_MAX>> refinementClimate;
 
@@ -1410,11 +1420,31 @@ Hit refine(Local &local, const Config &cfg, const Hit &seed, Control &control) {
 
 
 
+/* 精算窗口几何（优化 1）：窗口以 best 为中心，而不是以 64 格桶原点为中心。
+ *
+ * refineExact 要评估的站位是 best ± kReach，再对最终站位评估 ±kFine，
+ * 因此访问到的圆心集合是 best ± (kReach + kFine) = best ± 27；
+ * 每个圆心要取半径 radius 的水平球壳切片，所以窗口必须覆盖
+ *   [best - 27 - radius, best + 27 + radius]
+ * 每边 kPreciseWindowMargin = 27 = kReach + kFine 刚好够用，
+ * side = 2*(radius + 27) 在 radius=128 时是 311 格，
+ * 比原来以桶原点为中心的 376 格少算 31.6% 面积。
+ * 原来必须留 120 余量，是因为圆心最多偏离桶原点 63 格（±27 之外再叠桶偏移）。
+ * 窗口起点按 best 对齐到 scale=1 的整数格即可；getVoronoiSrcRange 内部会
+ * 自行右移 2 位对齐到 4 格网格，不要求这里预先对齐。 */
+constexpr int kRefineExactReach = 24;
+constexpr int kRefineExactFine = 3;
+constexpr int kPreciseWindowMargin = kRefineExactReach + kRefineExactFine;
+int kPreciseWindowSide(int radius) {
+    return 2*(radius + kPreciseWindowMargin) + 1;
+}
+
 Hit refineExact(Local &local, const Config &cfg, const Hit &best, Control &control) {
 
     int radius = cfg.coverage == "game" ? 128 : cfg.innerRadius;
 
-    int bx = floorDiv(best.x,64), bz = floorDiv(best.z,64);
+    // 缓存键用 best 本身：窗口以 best 为中心，同一 best 才能复用同一窗口。
+    int bx = best.x, bz = best.z;
 
     std::shared_ptr<BiomeWindow> precise;
 
@@ -1426,15 +1456,18 @@ Hit refineExact(Local &local, const Config &cfg, const Hit &best, Control &contr
 
     if (!precise) {
 
-        precise = sampleWindow(local,bx*64-radius-28,bz*64-radius-28,
+        int side = kPreciseWindowSide(radius);
 
-                               2*radius+120,2*radius+120,cfg,1,control);
+        precise = sampleWindow(local,best.x-radius-kPreciseWindowMargin,
+                               best.z-radius-kPreciseWindowMargin,
+
+                               side,side,cfg,1,control);
 
         if (!precise)
 
             return {};
 
-        if (local.windows.size() == 2)
+        if (local.windows.size() == Local::kPreciseWindowCacheSize)
 
             local.windows.erase(local.windows.begin());
 
@@ -1722,7 +1755,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     result.statistics.phase = "refine";
 
-    result.statistics.refineTotal = seeds.size()+std::min(seeds.size(),size_t(std::max({1024,8*cfg.top,cfg.candidateBudget/16})));
+    result.statistics.refineTotal = seeds.size()+std::min(seeds.size(),size_t(cfg.exactBudget > 0 ? cfg.exactBudget : std::max({kDefaultExactBudget,8*cfg.top,cfg.candidateBudget/16})));
 
     uint64_t done = 0;
 
@@ -1774,9 +1807,12 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     }),finalists.end());
 
-// 留至少1024个或8倍Top K，给插值误差和热点归并留余量；不是只重排近似榜单前100。
+// 精算预算（优化 3）：默认 768 个或 8 倍 Top K，给插值误差和热点归并留余量；
+// 不是只重排近似榜单前 100。cfg.exactBudget > 0 时改用该值（--exact-budget）。
+    size_t exactBudget = cfg.exactBudget > 0 ? size_t(cfg.exactBudget) :
+        size_t(std::max({kDefaultExactBudget,8*cfg.top,cfg.candidateBudget/16}));
 
-    size_t exactBudget = std::min(finalists.size(),size_t(std::max({1024,8*cfg.top,cfg.candidateBudget/16})));
+    exactBudget = std::min(finalists.size(),exactBudget);
 
     finalists.resize(exactBudget);
 

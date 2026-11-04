@@ -25,6 +25,12 @@ constexpr double kDefaultCaveConversion = 4880.0 / 7011.0;
  */
 constexpr int kPlayerYAuto = std::numeric_limits<int>::min();
 
+/**
+ * 自动精算预算的下限（优化 3：原为 1024，实测 768 时 Top100 一致且省约 25% 精算）。
+ * top=100 时 8*top=800 已经高于 768，因此实际生效值通常仍是 800。
+ */
+constexpr int kDefaultExactBudget = 768;
+
 // 信封及主指标降序沿用v3；0.3.0的参数和计分模型已升级，旧sampleY请求不兼容。
 constexpr int kProtocolVersion = 3;
 constexpr int kRankingRuleVersion = 3;
@@ -89,6 +95,12 @@ struct Config {
     int minDistance = 256;
     // 0按Top K展开为max(8192,64*top)，不是返回条数。
     int candidateBudget = 0;
+    /**
+     * 精算预算（优化 3）：进入 refineExact 最终逐格精算的候选数。
+     * 0 = 自动，取 max(kDefaultExactBudget, 8*top, candidateBudget/16)；
+     * >0 时直接用该值（--exact-budget），便于按种子权衡耗时与榜单覆盖。
+     */
+    int exactBudget = 0;
 };
 
 /** 统计层数：纯河流只算 Y=-63 一层。 */

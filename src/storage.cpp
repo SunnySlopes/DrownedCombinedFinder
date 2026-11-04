@@ -16,7 +16,7 @@ Json configJson(const Config &cfg) {
         {"innerRadius",cfg.innerRadius},{"simulationDistanceChunks",cfg.simulationDistanceChunks},
         {"playerY",cfg.playerY},{"optimizePlayerY",cfg.optimizePlayerY},{"minDistance",cfg.minDistance},
         {"coarseY",cfg.coarseY},
-        {"candidateBudget",cfg.candidateBudget},{"yMin",cfg.yMin},{"yMax",cfg.yMax},
+        {"candidateBudget",cfg.candidateBudget},{"exactBudget",cfg.exactBudget},{"yMin",cfg.yMin},{"yMax",cfg.yMax},
         {"approximateGate",cfg.approximateGate},{"rectMode",cfg.rectMode},
         {"minX",cfg.minX},{"maxX",cfg.maxX},{"minZ",cfg.minZ},{"maxZ",cfg.maxZ},
         {"minRiverArea",cfg.minRiverArea},{"minCaveArea",cfg.minCaveArea},
@@ -63,6 +63,7 @@ Config configFromJson(const Json &value) {
     cfg.optimizePlayerY = value.value("optimizePlayerY",cfg.optimizePlayerY);
     cfg.coarseY = value.value("coarseY",cfg.coarseY);
     cfg.candidateBudget = value.value("candidateBudget",cfg.candidateBudget);
+    cfg.exactBudget = value.value("exactBudget",cfg.exactBudget);
     cfg.yMin = value.value("yMin",cfg.yMin);
     cfg.yMax = value.value("yMax",cfg.yMax);
     cfg.approximateGate = value.value("approximateGate",cfg.approximateGate);
