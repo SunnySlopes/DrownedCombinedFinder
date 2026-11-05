@@ -146,7 +146,7 @@ DesktopRequest parseDesktopRequest(const Json &config) {
     DesktopRequest request;
     request.deferExport = config.value("deferExport", false);
     request.fullWorld = bounds.value("fullWorld", false);
-    requireInteger(config, "threads", 1, 32);
+    requireInteger(config, "threads", 1, kMaxWorkerThreads);
     requireInteger(config, "resultLimit", 1, 200);
 
     Json plain = Json::object();

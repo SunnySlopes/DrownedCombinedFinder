@@ -40,7 +40,7 @@ pwsh -File build.ps1 -Test
 | `--coarse-y` | 粗筛召回高度；粗筛气候门与 Y 无关，仅为协议/CLI 兼容而携带 | -51 |
 | `--pit` | 大坑逃课路径（只计溶洞体积） | 关闭 |
 | `--bench` | 输出 ns/格、A表命中率、早退率、峰值工作集 | 关闭 |
-| `--threads`、`--limit` | 1–32线程、最多100000条 | 8、100 |
+| `--threads`、`--limit` | 线程数与条数上限；线程默认取当前机器硬件并发度，多核机器吃满全部核心 | 当前机器上限、100 |
 | `--output`、`--jsonl` | 结果目录、CLI进度 | `results`、关闭 |
 
 距离支持对应的`--radius-unit`、`--inner-radius-unit`、`--min-distance-unit`和`--simulation-distance-unit`，值为`blocks/chunks`；模拟距离必须精确换算为整数区块。`--full-world`展开世界边界方形；`--versions`列出正式版入口。

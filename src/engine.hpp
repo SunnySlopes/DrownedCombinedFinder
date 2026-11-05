@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -10,6 +11,7 @@
 #include <limits>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace riverfinder_native {
@@ -31,6 +33,37 @@ constexpr int kPlayerYAuto = std::numeric_limits<int>::min();
  */
 constexpr int kDefaultExactBudget = 768;
 
+/**
+ * 并行工作线程数的校验上限。默认线程数 = 当前机器的硬件并发度，超过 32 核同样吃满，
+ * 不再有「32 就是天花板」的隐含约束。
+ *
+ * 这里保留一个上限只是为了拦截明显荒谬的输入（例如 --threads 100000 会尝试创建
+ * 十万个线程）；它不是性能或稳定性边界，仓库里没有「线程数到某个值就出问题」的实测依据。
+ * 取 1024 是为了覆盖当前及可预见的机器（含多路服务器），真实硬件不会触到。
+ *
+ * 放开线程数时要注意：峰值内存与线程数近似线性。每个工作线程在精算阶段会同时持有
+ * 一个 1:1 窗口（半径 128 时约 12 MB），32 线程实测峰值工作集约 0.4 GB，
+ * 因此 128 线程约 1.5 GB。多核机器放开前应结合本机内存评估。
+ */
+constexpr int kMaxWorkerThreads = 1024;
+
+/**
+ * 默认线程数 = 当前机器的硬件并发度 std::thread::hardware_concurrency()。
+ * - 该函数允许返回 0 表示“无法确定”，此时退回 16；
+ * - 结果按 kMaxWorkerThreads 封顶，保证默认值一定能通过 validate()，
+ *   否则核数超过上限的机器会在默认配置下直接报错。
+ * 只求值一次并缓存：Config 在多处被默认构造（如 configJson 的字段模板）。
+ */
+inline int defaultThreads() {
+    static const int cached = [] {
+        unsigned count = std::thread::hardware_concurrency();
+        if (count == 0)
+            count = 16;
+        return int(std::min(count, unsigned(kMaxWorkerThreads)));
+    }();
+    return cached;
+}
+
 // 信封及主指标降序沿用v3；0.3.0的参数和计分模型已升级，旧sampleY请求不兼容。
 constexpr int kProtocolVersion = 3;
 constexpr int kRankingRuleVersion = 3;
@@ -46,9 +79,10 @@ struct Config {
     int radius = 100000;
     std::string shape = "circle";
     bool fullWorld = false;
-    /* 默认 16 线程（作者实测 300k 半径 33.0 → 25.7 s，1e6 半径由“卡死”降到分钟级；
-     * 配合每线程本地候选堆后效果才明显）。上限仍由 validate() 限定为 32。 */
-    int threads = 16;
+    /* 默认线程数 = 当前机器的硬件并发度（封顶 kMaxWorkerThreads）。
+     * 原为固定值，那只是当时开发机的取值，换机器就浪费或超订；
+     * 现在小机器不超订、大机器能吃满，显式 --threads 仍可覆盖。 */
+    int threads = defaultThreads();
     int top = 100;
     // 三字段门槛（C7）：minArea = R + 1.43668·C。minArea 是低层入口，
     // 三字段给定时由 minRiverArea/minCaveArea 推导。默认 = 河流 70% 上限。

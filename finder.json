@@ -6,7 +6,6 @@
   "radius": 100000,
   "shape": "circle",
   "min-area": 34748,
-  "threads": 8,
   "limit": 100,
   "output": "results",
   "coverage": "game",

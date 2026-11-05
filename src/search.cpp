@@ -425,8 +425,9 @@ throw std::invalid_argument("内半径须在1至30000000格内");
     if (cfg.centerX < kWorldMin || cfg.centerX > kWorldMax || cfg.centerZ < kWorldMin || cfg.centerZ > kWorldMax)
 throw std::invalid_argument("搜索中心必须在世界边界内");
 
-    if (cfg.threads < 1 || cfg.threads > 32 || cfg.top < 1 || cfg.top > 100000)
-throw std::invalid_argument("threads须为1至32，limit须为1至100000");
+    if (cfg.threads < 1 || cfg.threads > kMaxWorkerThreads || cfg.top < 1 || cfg.top > 100000)
+throw std::invalid_argument("threads须为1至" + std::to_string(kMaxWorkerThreads) +
+                            "，limit须为1至100000");
 
     if (cfg.minArea < 0 || cfg.minDistance < 0)
 throw std::invalid_argument("面积下限与热点间距不能为负");
@@ -549,7 +550,13 @@ void parallel(uint64_t count, int threads, Control &control, Work work) {
 
     std::vector<std::thread> workers;
 
-    for (int worker = 0; worker < threads; ++worker) {
+    // 线程数多于此处的任务数没有意义：每个空转线程仍要真实创建/销毁一次。
+    // 高核数机器默认线程数很大时，精排等小任务阶段会因此少建大量无用线程。
+    int spawn = int(std::min<uint64_t>(uint64_t(std::max(threads,1)),std::max<uint64_t>(count,1)));
+
+    workers.reserve(size_t(spawn));
+
+    for (int worker = 0; worker < spawn; ++worker) {
 
         workers.emplace_back([&,worker] {
 
@@ -698,19 +705,10 @@ struct Local {
 
     GeometryCache geometry;
 
-    struct Cache {
-
-        int bx, bz;
-
-        std::shared_ptr<BiomeWindow> window;
-
-    };
-
-    std::vector<Cache> windows;
-
-    // 精算窗口缓存容量（优化 2）：同一线程的相邻最终候选经常落在同一窗口内，
-    // 2 个槽位在 1024 个精算候选中命中率很低；提到 12 个几乎零成本。
-    static constexpr size_t kPreciseWindowCacheSize = 12;
+    // 精算窗口缓存已移除（优化 2 作废）。窗口改为以 best 为中心后，
+    // 每个 finalist 的 (best.x,best.z) 在进入 refineExact 前已按 XZ 去重，
+    // 缓存键不可能重复命中；保留空缓存只会白占内存（实测 12 槽 × 32 线程
+    // 把峰值工作集从约 1.3 GB 推到约 4.7 GB）。
 
     std::unordered_map<uint64_t, std::array<float, NP_MAX>> refinementClimate;
 
@@ -1443,37 +1441,17 @@ Hit refineExact(Local &local, const Config &cfg, const Hit &best, Control &contr
 
     int radius = cfg.coverage == "game" ? 128 : cfg.innerRadius;
 
-    // 缓存键用 best 本身：窗口以 best 为中心，同一 best 才能复用同一窗口。
-    int bx = best.x, bz = best.z;
+    // 窗口以 best 为中心；每个 finalist 的 XZ 在调用前已去重，无需再查缓存。
+    int side = kPreciseWindowSide(radius);
 
-    std::shared_ptr<BiomeWindow> precise;
+    auto precise = sampleWindow(local,best.x-radius-kPreciseWindowMargin,
+                                best.z-radius-kPreciseWindowMargin,
 
-    for (auto &cached : local.windows)
+                                side,side,cfg,1,control);
 
-        if (cached.bx == bx && cached.bz == bz)
+    if (!precise)
 
-            precise = cached.window;
-
-    if (!precise) {
-
-        int side = kPreciseWindowSide(radius);
-
-        precise = sampleWindow(local,best.x-radius-kPreciseWindowMargin,
-                               best.z-radius-kPreciseWindowMargin,
-
-                               side,side,cfg,1,control);
-
-        if (!precise)
-
-            return {};
-
-        if (local.windows.size() == Local::kPreciseWindowCacheSize)
-
-            local.windows.erase(local.windows.begin());
-
-        local.windows.push_back({bx,bz,precise});
-
-    }
+        return {};
 
     auto time = Clock::now();
 

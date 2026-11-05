@@ -52,7 +52,8 @@ R"(river-native —— 低Y溺尸农场搜索后端
 诊断:   --score-point <x> <z>（单点 1:1 打分，与最终精排同一几何）
         --sweep-afk-y <a> <b>（同一份群系采样下扫描挂机 Y）
         --repeat <n>（单点计时重复次数，默认5）
-输出:   --limit 100 --output results --threads 8 --jsonl
+输出:   --limit 100 --output results --jsonl
+线程:   --threads <n>（默认=当前机器硬件并发度，多核机器吃满全部核心）
 配置:   --config finder.json；键为不带--的参数名，命令行覆盖。
 版本:   --versions列出1.18至26.3全部正式版入口。
 结果为群系与几何模型预计值，不是实际每小时产量。
