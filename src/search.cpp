@@ -1733,7 +1733,7 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     result.statistics.phase = "refine";
 
-    result.statistics.refineTotal = seeds.size()+std::min(seeds.size(),size_t(cfg.exactBudget > 0 ? cfg.exactBudget : std::max({kDefaultExactBudget,8*cfg.top,cfg.candidateBudget/16})));
+    result.statistics.refineTotal = seeds.size()+std::min(seeds.size(),size_t(cfg.exactBudget > 0 ? cfg.exactBudget : std::max({kDefaultExactBudget,kExactBudgetPerTop*cfg.top,cfg.candidateBudget/kExactBudgetPerCandidate})));
 
     uint64_t done = 0;
 
@@ -1785,10 +1785,12 @@ static SearchResult searchPass(Config cfg, Control &control, const ProgressCallb
 
     }),finalists.end());
 
-// 精算预算（优化 3）：默认 768 个或 8 倍 Top K，给插值误差和热点归并留余量；
-// 不是只重排近似榜单前 100。cfg.exactBudget > 0 时改用该值（--exact-budget）。
+// 精算预算（优化 3 + A）：默认取 max(256, 3*top, candidateBudget/32) = 300（top=100）；
+// 给插值误差和热点归并留余量，不是只重排近似榜单前 100。
+// 三项配比见 engine.hpp 的 kDefaultExactBudget / kExactBudgetPerTop / kExactBudgetPerCandidate。
+// cfg.exactBudget > 0 时改用该值（--exact-budget）。
     size_t exactBudget = cfg.exactBudget > 0 ? size_t(cfg.exactBudget) :
-        size_t(std::max({kDefaultExactBudget,8*cfg.top,cfg.candidateBudget/16}));
+        size_t(std::max({kDefaultExactBudget,kExactBudgetPerTop*cfg.top,cfg.candidateBudget/kExactBudgetPerCandidate}));
 
     exactBudget = std::min(finalists.size(),exactBudget);
 

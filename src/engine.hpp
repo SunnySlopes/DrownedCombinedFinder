@@ -28,10 +28,24 @@ constexpr double kDefaultCaveConversion = 4880.0 / 7011.0;
 constexpr int kPlayerYAuto = std::numeric_limits<int>::min();
 
 /**
- * 自动精算预算的下限（优化 3：原为 1024，实测 768 时 Top100 一致且省约 25% 精算）。
- * top=100 时 8*top=800 已经高于 768，因此实际生效值通常仍是 800。
+ * 自动精算预算的下限（优化 3：原为 1024；A 项再降到 256）。
+ * 实测：r8000/r20000、多条种子下，256~300 与 800 的 Top50 逐位一致，
+ * 只有 51~100 名尾部顺序会漂移。top≥86 时由 kExactBudgetPerTop*top 接管。
  */
-constexpr int kDefaultExactBudget = 768;
+constexpr int kDefaultExactBudget = 256;
+
+/**
+ * 自动精算预算的「每个 top 名额配多少精算候选」。
+ * 原为 8：top=100 时自动值 800。实测降到 3（300）时 Top50 逐位一致（含分数与顺序），
+ * 而精算耗时与预算近似线性，因此默认取 3。需要更稳的尾部时用 --exact-budget 显式调回。
+ */
+constexpr int kExactBudgetPerTop = 3;
+
+/**
+ * 自动精算预算中由候选池规模决定的一项：candidateBudget / 该值。
+ * 原为 16（8192 → 512），会把上面的 3*top=300 顶回去，故放到 32（8192 → 256）。
+ */
+constexpr int kExactBudgetPerCandidate = 32;
 
 /**
  * 并行工作线程数的校验上限。默认线程数 = 当前机器的硬件并发度，超过 32 核同样吃满，
@@ -131,7 +145,7 @@ struct Config {
     int candidateBudget = 0;
     /**
      * 精算预算（优化 3）：进入 refineExact 最终逐格精算的候选数。
-     * 0 = 自动，取 max(kDefaultExactBudget, 8*top, candidateBudget/16)；
+     * 0 = 自动，取 max(kDefaultExactBudget, kExactBudgetPerTop*top, candidateBudget/kExactBudgetPerCandidate)；
      * >0 时直接用该值（--exact-budget），便于按种子权衡耗时与榜单覆盖。
      */
     int exactBudget = 0;

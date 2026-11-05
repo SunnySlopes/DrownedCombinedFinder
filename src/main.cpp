@@ -44,7 +44,7 @@ R"(river-native —— 低Y溺尸农场搜索后端
         --optimize-player-y（计算最佳挂机Y，平台解析解）
 折算:   --include-caves（关闭时仅Y=-63普通河流，开启后按yMin..yMax逐层统计）
 筛选:   --min-area 34748 --min-distance 256 --candidate-budget 0
-        --exact-budget 0（0=自动：max(768, 8*top, candidate-budget/16)）
+        --exact-budget 0（0=自动：max(256, 3*top, candidate-budget/32)）
         三字段: --min-river-area R --min-cave-area C（门槛 = R + 1.43668·C）
         --approximate-gate / --no-approximate-gate（八度早退与 weird 早退同开关）
         --pure-river-cache auto|on|off --pure-river-mask 32|64 --pit --bench
